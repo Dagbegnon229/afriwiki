@@ -3,18 +3,18 @@
 import * as React from "react";
 
 const languages = [
-    { code: "fr", name: "Français", flag: "🇫🇷" },
-    { code: "en", name: "English", flag: "🇬🇧" },
-    { code: "ar", name: "العربية", flag: "🇸🇦" },
-    { code: "pt", name: "Português", flag: "🇵🇹" },
-    { code: "sw", name: "Kiswahili", flag: "🇹🇿" },
-    { code: "ha", name: "Hausa", flag: "🇳🇬" },
-    { code: "yo", name: "Yorùbá", flag: "🇳🇬" },
-    { code: "ig", name: "Igbo", flag: "🇳🇬" },
-    { code: "am", name: "አማርኛ", flag: "🇪🇹" },
-    { code: "zu", name: "isiZulu", flag: "🇿🇦" },
-    { code: "wo", name: "Wolof", flag: "🇸🇳" },
-    { code: "ff", name: "Fulfulde", flag: "🌍" },
+    { code: "fr", name: "Français", flag: "🇫🇷", gtCode: "fr" },
+    { code: "en", name: "English", flag: "🇬🇧", gtCode: "en" },
+    { code: "ar", name: "العربية", flag: "🇸🇦", gtCode: "ar" },
+    { code: "pt", name: "Português", flag: "🇵🇹", gtCode: "pt" },
+    { code: "sw", name: "Kiswahili", flag: "🇹🇿", gtCode: "sw" },
+    { code: "ha", name: "Hausa", flag: "🇳🇬", gtCode: "ha" },
+    { code: "yo", name: "Yorùbá", flag: "🇳🇬", gtCode: "yo" },
+    { code: "ig", name: "Igbo", flag: "🇳🇬", gtCode: "ig" },
+    { code: "am", name: "አማርኛ", flag: "🇪🇹", gtCode: "am" },
+    { code: "zu", name: "isiZulu", flag: "🇿🇦", gtCode: "zu" },
+    { code: "wo", name: "Wolof", flag: "🇸🇳", gtCode: "wo" },
+    { code: "ff", name: "Fulfulde", flag: "🌍", gtCode: "ff" },
 ];
 
 export function LanguageSelector() {
@@ -33,14 +33,42 @@ export function LanguageSelector() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleLanguageChange = (langCode: string) => {
+    const handleLanguageChange = (langCode: string, gtCode: string) => {
         setCurrentLang(langCode);
         setIsOpen(false);
 
-        // Pour l'instant, on affiche juste un message
-        // Une vraie implémentation utiliserait next-intl ou similar
-        if (langCode !== "fr") {
-            alert(`La traduction en ${languages.find(l => l.code === langCode)?.name} sera bientôt disponible ! Pour l'instant, le site est en français.`);
+        // Utiliser Google Translate pour traduire la page
+        if (langCode === "fr") {
+            // Revenir au français (langue originale)
+            // Supprimer le cookie de traduction Google
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.afriwiki.vercel.app";
+            // Recharger pour revenir à l'original
+            window.location.reload();
+        } else {
+            // Définir la langue cible pour Google Translate
+            document.cookie = `googtrans=/fr/${gtCode}; path=/`;
+            document.cookie = `googtrans=/fr/${gtCode}; path=/; domain=.afriwiki.vercel.app`;
+
+            // Vérifie si le script Google Translate est déjà chargé
+            if (!document.getElementById("google-translate-script")) {
+                // Injecter le script Google Translate
+                const script = document.createElement("script");
+                script.id = "google-translate-script";
+                script.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+                document.body.appendChild(script);
+
+                // Définir la fonction d'initialisation
+                (window as unknown as { googleTranslateElementInit: () => void }).googleTranslateElementInit = () => {
+                    new (window as unknown as { google: { translate: { TranslateElement: new (config: object, elementId: string) => void } } }).google.translate.TranslateElement(
+                        { pageLanguage: "fr", includedLanguages: gtCode, autoDisplay: false },
+                        "google_translate_element"
+                    );
+                };
+            } else {
+                // Script déjà chargé, juste recharger
+                window.location.reload();
+            }
         }
     };
 
@@ -48,6 +76,9 @@ export function LanguageSelector() {
 
     return (
         <div ref={dropdownRef} style={{ position: "relative" }}>
+            {/* Conteneur caché pour Google Translate */}
+            <div id="google_translate_element" style={{ display: "none" }} />
+
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="lang-selector"
@@ -63,7 +94,7 @@ export function LanguageSelector() {
                     fontSize: "0.9rem",
                 }}
             >
-                🌐 {languages.length} langues ▾
+                {currentLanguage?.flag || "🌐"} {currentLanguage?.name || "Langue"} ▾
             </button>
 
             {isOpen && (
@@ -88,13 +119,13 @@ export function LanguageSelector() {
                         fontSize: "0.8rem",
                         color: "var(--text-secondary)"
                     }}>
-                        Langue actuelle : {currentLanguage?.flag} {currentLanguage?.name}
+                        Traduire cette page
                     </div>
 
                     {languages.map((lang) => (
                         <button
                             key={lang.code}
-                            onClick={() => handleLanguageChange(lang.code)}
+                            onClick={() => handleLanguageChange(lang.code, lang.gtCode)}
                             style={{
                                 width: "100%",
                                 padding: "0.75rem 1rem",
@@ -126,13 +157,13 @@ export function LanguageSelector() {
                     ))}
 
                     <div style={{
-                        padding: "0.75rem 1rem",
-                        fontSize: "0.75rem",
+                        padding: "0.5rem 1rem",
+                        fontSize: "0.7rem",
                         color: "var(--text-secondary)",
                         textAlign: "center",
                         borderTop: "1px solid var(--border-light)"
                     }}>
-                        🚧 Traductions en cours de développement
+                        Traduction par Google Translate
                     </div>
                 </div>
             )}

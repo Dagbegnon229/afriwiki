@@ -11,27 +11,27 @@ import { applyStaticAutoLinks } from "@/lib/autolink";
 // Fonction de sanitization pour éviter les attaques XSS
 const sanitizeHtml = (html: string): string => {
   if (!html) return "";
-  
+
   let sanitized = html;
-  
+
   // Supprimer les balises script
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
-  
+
   // Supprimer les event handlers inline
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*["'][^"']*["']/gi, "");
   sanitized = sanitized.replace(/\s+on\w+\s*=\s*[^\s>]+/gi, "");
-  
+
   // Supprimer les liens javascript:
   sanitized = sanitized.replace(/href\s*=\s*["']javascript:[^"']*["']/gi, 'href="#"');
   sanitized = sanitized.replace(/src\s*=\s*["']javascript:[^"']*["']/gi, 'src=""');
-  
+
   // Supprimer les balises dangereuses
   sanitized = sanitized.replace(/<(iframe|object|embed|form|input|button|select|textarea)[^>]*>.*?<\/\1>/gi, "");
   sanitized = sanitized.replace(/<(iframe|object|embed|form|input|button|select|textarea)[^>]*\/?>/gi, "");
-  
+
   // Supprimer les expressions CSS dangereuses
   sanitized = sanitized.replace(/expression\s*\([^)]*\)/gi, "");
-  
+
   return sanitized;
 };
 
@@ -111,15 +111,15 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
   // Helper pour convertir le markdown simple en HTML
   const parseMarkdown = (text: string) => {
     if (!text) return "";
-    
+
     // D'abord, on sépare par doubles sauts de ligne pour avoir les paragraphes
     const blocks = text.split(/\n\n+/);
-    
+
     const processedBlocks = blocks.map((block) => {
       // Nettoyer les espaces au début et à la fin
       block = block.trim();
       if (!block) return "";
-      
+
       // Titres ### 
       if (block.startsWith("### ")) {
         const title = block.replace(/^### /, "")
@@ -127,7 +127,7 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
           .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
         return `<h4 class="wiki-h4">${title}</h4>`;
       }
-      
+
       // Titres ## 
       if (block.startsWith("## ")) {
         const title = block.replace(/^## /, "")
@@ -135,7 +135,7 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
           .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
         return `<h3 class="wiki-h3">${title}</h3>`;
       }
-      
+
       // Listes à puces (lignes commençant par * ou -)
       if (/^[\*\-] /m.test(block)) {
         const items = block.split(/\n/).map((line) => {
@@ -152,7 +152,7 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
         }).join("");
         return `<ul class="wiki-list">${items}</ul>`;
       }
-      
+
       // Listes numérotées
       if (/^\d+\. /m.test(block)) {
         const items = block.split(/\n/).map((line) => {
@@ -169,7 +169,7 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
         }).join("");
         return `<ol class="wiki-list">${items}</ol>`;
       }
-      
+
       // Paragraphe normal avec mise en forme inline
       let html = block
         // Liens markdown [texte](url) - si url commence par http ou / c'est un vrai lien
@@ -181,10 +181,10 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
         .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
         .replace(/\*(.+?)\*/g, "<em>$1</em>")
         .replace(/\n/g, "<br>");
-      
+
       return `<p class="wiki-paragraph">${html}</p>`;
     });
-    
+
     return processedBlocks.filter(b => b).join("");
   };
 
@@ -196,9 +196,9 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
   // Rendu du contenu (supporte HTML et Markdown) avec auto-linking et sanitization
   const renderContent = (text: string | null) => {
     if (!text) return null;
-    
+
     let html: string;
-    
+
     // Si c'est déjà du HTML (venant de l'éditeur riche), on l'utilise directement
     if (isHtml(text)) {
       html = text;
@@ -206,13 +206,13 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
       // Sinon on parse le markdown
       html = parseMarkdown(text);
     }
-    
+
     // SÉCURITÉ: Sanitizer le HTML pour éviter les attaques XSS
     html = sanitizeHtml(html);
-    
+
     // Appliquer l'auto-linking pour créer des liens vers les pages AfriWiki
     html = applyStaticAutoLinks(html);
-    
+
     return <div dangerouslySetInnerHTML={{ __html: html }} className="wiki-content" />;
   };
   // Verification badge text
@@ -240,9 +240,9 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
           </Link>
         </div>
         <div className="tabs-right">
-          <Link href="#">Lire</Link>
-          <Link href="#">Modifier</Link>
-          <Link href="#">Voir l&apos;historique</Link>
+          <Link href={`/e/${entrepreneur.slug}`}>Lire</Link>
+          <Link href={`/connexion?redirect=/dashboard/editer&article=${entrepreneur.slug}`}>Modifier</Link>
+          <Link href={`/connexion?redirect=/dashboard/editer&article=${entrepreneur.slug}`}>Voir l&apos;historique</Link>
           <span>Outils ▾</span>
         </div>
       </nav>
@@ -360,11 +360,10 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
                 <div style={{ flex: 1, padding: "0.35rem 0.5rem" }}>
                   {badge && (
                     <span
-                      className={`verified-badge ${
-                        entrepreneur.verification_level === 3
+                      className={`verified-badge ${entrepreneur.verification_level === 3
                           ? "verified-badge-pro"
                           : ""
-                      }`}
+                        }`}
                     >
                       {badge.icon} {badge.text}
                     </span>
@@ -520,9 +519,9 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
             {parcours.length > 0 ? (
               <div style={{ marginBottom: "1rem" }}>
                 {parcours.map((item) => (
-                  <div 
-                    key={item.id} 
-                    style={{ 
+                  <div
+                    key={item.id}
+                    style={{
                       marginBottom: "0.5rem",
                       border: "1px solid var(--border-light)",
                       borderRadius: "4px",
@@ -591,9 +590,9 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
             {entreprises.length > 0 ? (
               <div style={{ marginBottom: "1rem" }}>
                 {entreprises.map((item) => (
-                  <div 
-                    key={item.id} 
-                    style={{ 
+                  <div
+                    key={item.id}
+                    style={{
                       marginBottom: "0.5rem",
                       border: "1px solid var(--border-light)",
                       borderRadius: "4px",
@@ -680,9 +679,9 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
                 </h2>
                 <div style={{ marginBottom: "1rem" }}>
                   {recompenses.map((item) => (
-                    <div 
-                      key={item.id} 
-                      style={{ 
+                    <div
+                      key={item.id}
+                      style={{
                         marginBottom: "0.5rem",
                         border: "1px solid var(--border-light)",
                         borderRadius: "4px",
