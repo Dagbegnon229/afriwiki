@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
+import { SuggestEditModal } from "@/components/SuggestEditModal";
 import { applyStaticAutoLinks } from "@/lib/autolink";
 
 // Fonction de sanitization pour éviter les attaques XSS
@@ -98,6 +99,7 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
   const [expandedParcours, setExpandedParcours] = useState<string | null>(null);
   const [expandedEntreprise, setExpandedEntreprise] = useState<string | null>(null);
   const [expandedRecompense, setExpandedRecompense] = useState<string | null>(null);
+  const [showSuggestModal, setShowSuggestModal] = useState(false);
 
   // Helper pour formater les dates
   const formatDate = (dateStr: string | null) => {
@@ -241,7 +243,19 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
         </div>
         <div className="tabs-right">
           <Link href={`/e/${entrepreneur.slug}`}>Lire</Link>
-          <Link href={`/connexion?redirect=/dashboard/editer&article=${entrepreneur.slug}`}>Modifier</Link>
+          <button
+            onClick={() => setShowSuggestModal(true)}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--link-color)",
+              fontSize: "inherit",
+              padding: 0,
+            }}
+          >
+            Modifier
+          </button>
           <Link href={`/connexion?redirect=/dashboard/editer&article=${entrepreneur.slug}`}>Voir l&apos;historique</Link>
           <span>Outils ▾</span>
         </div>
@@ -361,8 +375,8 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
                   {badge && (
                     <span
                       className={`verified-badge ${entrepreneur.verification_level === 3
-                          ? "verified-badge-pro"
-                          : ""
+                        ? "verified-badge-pro"
+                        : ""
                         }`}
                     >
                       {badge.icon} {badge.text}
@@ -836,6 +850,16 @@ export const EntrepreneurPageClient = ({ entrepreneur, country, fullName, parcou
       </div>
 
       <Footer />
+
+      {/* Modal de suggestion de modification */}
+      <SuggestEditModal
+        isOpen={showSuggestModal}
+        onClose={() => setShowSuggestModal(false)}
+        entrepreneurSlug={entrepreneur.slug}
+        entrepreneurName={fullName}
+        currentBio={entrepreneur.bio}
+        currentHeadline={entrepreneur.headline}
+      />
     </>
   );
 };
