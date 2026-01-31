@@ -49,6 +49,7 @@ export default function DashboardLayout({
 
   const menuItems = [
     { href: "/dashboard", label: "Ma page", icon: "📄", exact: true },
+    { href: "/dashboard/notifications", label: "Notifications", icon: "🔔" },
     { href: "/dashboard/editer", label: "Éditer", icon: "✏️" },
     { href: "/dashboard/articles", label: "Contributions", icon: "📝" },
     { href: "/dashboard/sources", label: "Sources", icon: "🔗" },

@@ -98,3 +98,79 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Accorder les permissions
 GRANT EXECUTE ON FUNCTION get_moderation_stats() TO authenticated;
+
+-- =========================================
+-- TABLE NOTIFICATIONS
+-- =========================================
+
+-- Table pour les notifications utilisateurs
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Destinataire
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    entrepreneur_id UUID REFERENCES entrepreneurs(id) ON DELETE CASCADE,
+    
+    -- Contenu
+    type TEXT NOT NULL CHECK (type IN ('modification_approved', 'modification_rejected', 'profile_update', 'new_view', 'system')),
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    
+    -- Lien optionnel
+    link TEXT,
+    
+    -- Statut
+    is_read BOOLEAN DEFAULT FALSE,
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_entrepreneur ON notifications(entrepreneur_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+
+-- Politiques RLS
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- Les utilisateurs peuvent voir leurs propres notifications
+CREATE POLICY "Users can view own notifications"
+    ON notifications FOR SELECT
+    TO authenticated
+    USING (user_id = auth.uid());
+
+-- Les utilisateurs peuvent marquer leurs notifications comme lues
+CREATE POLICY "Users can update own notifications"
+    ON notifications FOR UPDATE
+    TO authenticated
+    USING (user_id = auth.uid());
+
+-- Les admins peuvent créer des notifications
+CREATE POLICY "Admin can insert notifications"
+    ON notifications FOR INSERT
+    TO authenticated
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM profiles 
+            WHERE profiles.id = auth.uid() 
+            AND profiles.role = 'admin'
+        )
+        OR
+        auth.jwt() ->> 'email' = 'linkpehoundagbegnon@gmail.com'
+    );
+
+-- Fonction pour obtenir le nombre de notifications non lues
+CREATE OR REPLACE FUNCTION get_unread_notifications_count(p_user_id UUID)
+RETURNS INTEGER AS $$
+BEGIN
+    RETURN (
+        SELECT COUNT(*)::INTEGER 
+        FROM notifications 
+        WHERE user_id = p_user_id AND is_read = FALSE
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION get_unread_notifications_count(UUID) TO authenticated;

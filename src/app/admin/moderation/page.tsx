@@ -79,12 +79,29 @@ export default function ModerationPage() {
       updateData.updated_at = new Date().toISOString();
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: entrepreneurError } = await (supabase as any)
+      const { data: entrepreneurData, error: entrepreneurError } = await (supabase as any)
         .from("entrepreneurs")
         .update(updateData)
-        .eq("slug", request.entrepreneur_slug);
+        .eq("slug", request.entrepreneur_slug)
+        .select("id, created_by")
+        .single();
 
       if (entrepreneurError) throw entrepreneurError;
+
+      // Créer une notification pour l'utilisateur propriétaire de l'article
+      if (entrepreneurData?.created_by) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase as any)
+          .from("notifications")
+          .insert({
+            user_id: entrepreneurData.created_by,
+            entrepreneur_id: entrepreneurData.id,
+            type: "modification_approved",
+            title: "Modification approuvée",
+            message: `Une modification a été approuvée sur votre article "${request.entrepreneur_slug}". Le champ "${formatFieldName(request.field_name)}" a été mis à jour.`,
+            link: `/e/${request.entrepreneur_slug}`,
+          });
+      }
 
       // Rafraîchir la liste
       fetchRequests();
