@@ -10,14 +10,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
-  
+
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Ne pas vérifier les permissions sur la page de connexion
+  const isLoginPage = pathname === "/admin/connexion";
+
   useEffect(() => {
+    // Si on est sur la page de connexion, pas besoin de vérifier
+    if (isLoginPage) {
+      setLoading(false);
+      return;
+    }
+
     const checkAdmin = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         router.push("/admin/connexion");
         return;
@@ -33,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     checkAdmin();
-  }, [router, supabase]);
+  }, [router, supabase, isLoginPage]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -63,6 +72,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <p style={{ color: "#9ca3af" }}>Vérification des permissions...</p>
       </div>
     );
+  }
+
+  // Afficher la page de connexion sans la sidebar ni vérification admin
+  if (isLoginPage) {
+    return <>{children}</>;
   }
 
   if (!isAdmin) {
