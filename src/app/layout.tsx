@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AppearanceProvider } from "@/components/AppearanceProvider";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import "./globals.css";
 
 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://afriwiki.vercel.app';
@@ -89,7 +90,10 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <AppearanceProvider>{children}</AppearanceProvider>
+        <AppearanceProvider>
+          <PageViewTracker />
+          {children}
+        </AppearanceProvider>
       </body>
     </html>
   );

@@ -153,16 +153,16 @@ export default async function HomePage() {
 
             <div className="welcome-links">
               <div className="welcome-links-col">
-                <Link href="#">Accueil de la communauté</Link>
-                <Link href="#">Comment contribuer ?</Link>
+                <Link href="/a-propos">Accueil de la communauté</Link>
+                <Link href="/inscription">Comment contribuer ?</Link>
               </div>
               <div className="welcome-links-col">
-                <Link href="#">Portails thématiques</Link>
-                <Link href="#">Principes fondateurs</Link>
+                <Link href="/recherche">Portails thématiques</Link>
+                <Link href="/a-propos">Principes fondateurs</Link>
               </div>
               <div className="welcome-links-col">
-                <Link href="#">Sommaire de l&apos;aide</Link>
-                <Link href="#">Poser une question</Link>
+                <Link href="/aide">Sommaire de l&apos;aide</Link>
+                <Link href="/aide">Poser une question</Link>
               </div>
             </div>
           </section>
@@ -379,16 +379,16 @@ export default async function HomePage() {
                   </p>
                   <ul>
                     <li>
-                      <Link href="/dashboard/creer">Créer votre page entrepreneur</Link>
+                      <Link href="/inscription">Créer votre page entrepreneur</Link>
                     </li>
                     <li>
-                      <Link href="#">Améliorer un article existant</Link>
+                      <Link href="/recherche">Améliorer un article existant</Link>
                     </li>
                     <li>
-                      <Link href="#">Ajouter des sources fiables</Link>
+                      <Link href="/inscription">Ajouter des sources fiables</Link>
                     </li>
                     <li>
-                      <Link href="#">Signaler une erreur</Link>
+                      <Link href="/aide">Signaler une erreur</Link>
                     </li>
                   </ul>
                 </div>
