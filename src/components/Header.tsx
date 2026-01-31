@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
+import { LanguageSelector } from "./LanguageSelector";
 
 interface Suggestion {
   id: string;
@@ -17,11 +18,11 @@ interface Suggestion {
 export const Header: React.FC = () => {
   const router = useRouter();
   const supabase = createClient();
-  
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const [suggestions, setSuggestions] = React.useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = React.useState(false);
-  
+
   const inputRef = React.useRef<HTMLInputElement>(null);
   const suggestionsRef = React.useRef<HTMLDivElement>(null);
 
@@ -217,7 +218,7 @@ export const Header: React.FC = () => {
         </form>
 
         <div className="header-right">
-          <span className="lang-selector">🌐 12 langues ▾</span>
+          <LanguageSelector />
           <Link href="/contribuer">Contribuer</Link>
           <Link href="/inscription">Créer un compte</Link>
           <Link href="/connexion">Se connecter</Link>
